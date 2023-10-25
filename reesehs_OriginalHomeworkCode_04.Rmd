@@ -1,0 +1,73 @@
+---
+title: "reesehs_OriginalHomeworkCode_04"
+author: "Reese Hotten-Somers"
+date: "2023-10-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Write a simple R function, Z.prop.test(), that can perform one- or two-sample Z-tests for proportion data, using the following guidelines:
+```{r}
+
+z.prop.test <- function( p1, n1, v1, p2 = NULL, n2 = NULL, v2, p0, alternative = c("two.sided", "less", "greater"), conf.levels = 0.95) {
+  if(is.null(p2) || is.null(n2)){
+    z <- (p1-pi)/sqrt(pi *(1-pi/n1))
+    p <- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE)
+    lower <- mean(v1) - qt(1 - 0.05/2, df = n - 1) * sd(v1)/sqrt(n1)
+    upper <- mean(v1) + qt(1 - 0.05/2, df = n - 1) * sd(v1)/sqrt(n1)
+    ci <- c(lower, upper)
+   #figure out how to calculate confidence interval, is this correct?
+  }
+  if(is.null(p2) & is.null(n2)){
+    z <- (p1-pi)/sqrt(pi *(1-pi/n1))
+    p <- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE)
+     lower <- mean(v1) - qt(1 - 0.05/2, df = n - 1) *   sd(v1)/sqrt(n1)
+    upper <- mean(v1) + qt(1 - 0.05/2, df = n - 1) * sd(v1)/sqrt(n1)
+    ci <- c(lower, upper)
+  }
+  
+  if((n1*p1)> 5 || n1*(1-p1) > 5){
+    print("non-normal distribution in one sample setting")
+  }
+  if((n2*p2)> 5 || n2*(1-p2) > 5){
+    print("non-normal distribution in two sample setting")
+  }
+  if((is.null(p2) = FALSE & is.null(n2) = FALSE) || (is.null(n2) = FALSE || is.null(p2) = FALSE)){
+    pstar <- (sum(v1) + sum(v2))/(length(v1) + length(v2))
+    phat1 <- mean(v1)
+    phat2 <- mean(v2)
+    pi <- 0
+    z <- (phat2 - phat1)/sqrt((pstar * (1 - pstar)) * (1/length(v1) + 1/length(v2)))
+    p <- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE)
+   # I literally have no idea how to do CI for a two sample test, I have looked everywhere. 
+  }
+  list(z, p, ci)
+  #For all test alternatives (“two.sided”, “greater”, “less”), calculate symmetric CIs based on quantiles of the normal distribution rather than worrying about calculating single-limit confidence bounds.
+  #unclear how to code this, any help would be much appreciated :')
+  }
+```
+
+## The dataset from Kamilar and Cooper has in it a large number of variables related to life history and body size. For this exercise, the end aim is to fit a simple linear regression model to predict longevity (MaxLongevity_m) measured in months from species’ brain size (Brain_Size_Species_Mean) measured in grams. Do the following for both longevity~brain size and log(longevity)~log(brain size):
+
+```{r, preliminaries}
+library(ggplot2)
+library(curl)
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/KamilarAndCooperData.csv") #imports data about zombies
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)  #reads data and creates data frame from it
+head(d) #returns data frame
+```
+
+### Fit the regression model and, using {ggplot2}, produce a scatterplot with the fitted line superimposed upon the data. Append the the fitted model equation to your plot (HINT: use the function geom_text()).
+```{r, regression model}
+names(d)
+g <- ggplot(data = d, aes(x = MaxLongevity_m, y = Brain_Size_Species_Mean)) + geom_point() + geom_smooth(method = "lm", formula = y ~ x)
+g
+#is this correct??
+
+lg <- ggplot(data = d, aes(x = log(MaxLongevity_m), y = log(Brain_Size_Species_Mean))) + geom_point() + geom_smooth(method = "lm", formula = y ~ x)
+lg
+```
+
