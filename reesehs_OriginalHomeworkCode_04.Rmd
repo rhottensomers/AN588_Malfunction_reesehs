@@ -75,69 +75,62 @@ z.prop.test <- function( p1, n1, p2 = NULL, n2 = NULL, p0, alternative = c("two.
 ```{r, preliminaries}
 library(ggplot2)
 library(curl)
-f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/KamilarAndCooperData.csv") #imports data about zombies
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/KamilarAndCooperData.csv") #imports data from Kamilar/Cooper data
 d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)  #reads data and creates data frame from it
 head(d) #returns data frame
 ```
 
 ### Fit the regression model and, using {ggplot2}, produce a scatterplot with the fitted line superimposed upon the data. Append the the fitted model equation to your plot (HINT: use the function geom_text()).
 ```{r, regression model}
-nl <- lm(data = d, MaxLongevity_m~Brain_Size_Species_Mean)
+nl <- lm(data = d, MaxLongevity_m~Brain_Size_Species_Mean) #creates linear model
 summary(nl)
-g <- ggplot(data = d, aes(x = Brain_Size_Species_Mean, y = MaxLongevity_m)) + geom_point() + geom_smooth(method = "lm", formula = y ~ x) #need to add legend
+g <- ggplot(data = d, aes(x = Brain_Size_Species_Mean, y = MaxLongevity_m)) + geom_point() + geom_smooth(method = "lm", formula = y ~ x) #need to add legend #creates plot of linear regression with 95% regression shaft outline
 g
 
 
 
-beta1 <- cor(d$MaxLongevity_m, d$Brain_Size_Species_Mean, use = "complete.obs") * sd(d$MaxLongevity_m, na.rm = TRUE)/sd(d$Brain_Size_Species_Mean, na.rm = TRUE)
+beta1 <- cor(d$MaxLongevity_m, d$Brain_Size_Species_Mean, use = "complete.obs") * sd(d$MaxLongevity_m, na.rm = TRUE)/sd(d$Brain_Size_Species_Mean, na.rm = TRUE) #returns slope of linear regression
 beta1
 
 beta0 <- mean(d$MaxLongevity_m, na.rm = TRUE) - beta1 * mean(d$Brain_Size_Species_Mean, na.rm = TRUE)
-beta0
+beta0 #gives intercept of linear regression
 
 #how are you supposed to take the 90 percent CI for slope/beta1?
 
-ci <- confint(nl, level = 0.90)  # using the results of lm()
+ci <- confint(nl, level = 0.90)  # using the results of lm() finds 90% confidence interval
 ci
-
-
-ci <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = d$Brain_Size_Species_Mean), interval = "confidence",
-    level = 0.95, )  # for a vector of values
-head(ci)
-
-df <- data.frame(ci)
-head(df)
-
-
 
 pe <- beta1 * 800 + beta0
 pe #point estimate
 
-h_hat <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = d$Brain_Size_Species_Mean))
-df <- data.frame(cbind(d$Brain_Size_Species_Mean, d$MaxLongevity_m, h_hat))
-names(df) <- c("x", "y", "yhat")
-head(df)
 
 ci <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = 800), interval = "confidence",
-    level = 0.9)  # for a single value
+    level = 0.9)  # confidence interval for a single value
 ci
 
 pi <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = 800), interval = "prediction",
-    level = 0.9)  # for a single value
+    level = 0.9)  # prediction interval for a single value
 pi
 
+
+h_hat <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = d$Brain_Size_Species_Mean)) #generates predicted y values from the linear regression nl and based on x values of Brain size speices mean
+df <- data.frame(cbind(d$Brain_Size_Species_Mean, d$MaxLongevity_m, h_hat))  #creates data frame of plot point and predicted points
+names(df) <- c("x", "y", "yhat") #names the data columns
+head(df)
+
 ci <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = d$Brain_Size_Species_Mean), interval = "confidence",
-    level = 0.9)  # for a vector of values
+    level = 0.95, )  # predicts CI for a predicted vector of values
 head(ci)
 
-df <- cbind(df, ci)
-names(df) <- c("x", "y", "yhat", "CIfit", "CIlwr", "CIupr")
+
+df <- cbind(df, ci) #binds the list of CI values to dataframe
+names(df) <- c("x", "y", "yhat", "CIfit", "CIlwr", "CIupr") #names the different columns containing CI values
 head(df)
 
 
-piBM <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = d$Brain_Size_Species_Mean), interval = "prediction",
-    level = 0.9)  # for a vector of values
-head(piBM)
+pi <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = d$Brain_Size_Species_Mean), interval = "prediction",
+    level = 0.9)  # predicts PI values for the predicted vector of values
+head(pi)
 
 df <- cbind(df, pi)
 names(df) <- c("x", "y", "yhat", "CIfit", "CIlwr", "CIupr", "PIfit", "PIlwr",
@@ -145,56 +138,50 @@ names(df) <- c("x", "y", "yhat", "CIfit", "CIlwr", "CIupr", "PIfit", "PIlwr",
 head(df)
 
 
-g <- ggplot(data = df, aes(x = x, y = y))+ geom_line(data = df, aes(x = x, y = PIlwr), colour = "red") + geom_line(data = df, aes(x = x, y = PIupr), colour = "red") + geom_point(alpha = 1/2) + geom_line(aes(x = x, y = CIfit), colour = "black") + geom_line(aes(x = x, y = CIlwr), colour = "blue") + geom_line(aes(x = x, y = CIupr), colour = "blue")
+g <- ggplot(data = df, aes(x = x, y = y))+ geom_line(data = df, aes(x = x, y = PIlwr), colour = "red") + geom_line(data = df, aes(x = x, y = PIupr), colour = "red") + geom_point(alpha = 1/2) + geom_line(aes(x = x, y = CIfit), colour = "black") + geom_line(aes(x = x, y = CIlwr), colour = "blue") + geom_line(aes(x = x, y = CIupr), colour = "blue") #adds PI upper and lower lines as well as CI upper, fit, and lower lines to plot of predicted data
 g
 
-#when knit my PI doesn't map onto the graph the way it is supposed to, why??
 ```
 
 ```{r, make it a log}
-llm <- lm(data = d, log(MaxLongevity_m)~log(Brain_Size_Species_Mean))
+llm <- lm(data = d, log(d$MaxLongevity_m)~log(d$Brain_Size_Species_Mean)) #creates linear model
 summary(llm)
-lg <- ggplot(data = d, aes(x = log(MaxLongevity_m), y = log(Brain_Size_Species_Mean))) + geom_point() + geom_smooth(method = "lm", formula = y ~ x)
+lg <- ggplot(data = d, aes(x = log(MaxLongevity_m), y = log(Brain_Size_Species_Mean))) + geom_point() + geom_smooth(method = "lm", formula = y ~ x) #creates plot of linear regression with 95% regression shaft outline
 lg
 
-beta1 <- cor(log(d$MaxLongevity_m), log(d$Brain_Size_Species_Mean), use = "complete.obs") * sd(log(d$MaxLongevity_m), na.rm = TRUE)/sd(log(d$Brain_Size_Species_Mean))
+beta1 <- cor(log(d$MaxLongevity_m), log(d$Brain_Size_Species_Mean), use = "complete.obs") * sd(log(d$MaxLongevity_m), na.rm = TRUE)/sd(log(d$Brain_Size_Species_Mean), na.rm = TRUE) #returns slope of linear regression
 beta1
 
-beta0 <- mean(log(d$MaxLongevity_m)) - beta1 * mean(log(d$Brain_Size_Species_Mean))
+beta0 <- mean(log(d$MaxLongevity_m), na.rm = TRUE) - beta1 * mean(log(d$Brain_Size_Species_Mean), na.rm = TRUE)  #gives intercept of linear regression
 beta0
 
-#how are you supposed to take the 90 percent CI for slope/beta1?
 
-ci <- confint(nl, level = 0.90)  # using the results of lm(), confidence interval
+ci <- confint(llm, level = 0.90)  # using the results of lm(), confidence interval
 ci
 
-ci <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = log(d$Brain_Size_Species_Mean)), interval = "confidence",
-    level = 0.95, )  # for a vector of values
-head(ci) #ci overall
-
-df <- data.frame(ci)
-head(df)
-
-
-
 pe <- beta1 * 800 + beta0
-pe #point estimate
+pe #point estimate, maybe 
 
-h_hat <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = log(d$Brain_Size_Species_Mean)))
-df <- data.frame(cbind(log(d$Brain_Size_Species_Mean), log(d$MaxLongevity_m), h_hat))
+log.brain <- log(d$Brain_Size_Species_Mean)
+#maybe this is how you do a point estimate?
+logpe <- predict(llm, newdata = data.frame(log.brain = log(800)))
+
+ci <- predict(llm, newdata = data.frame( Brain_Size_Species_Mean= log(800)), interval = "confidence",
+    level = 0.9)  ## confidence interval for a single value(800)
+ci #these don't work for some reason? 
+
+pi <- predict(llm, newdata = data.frame(Brain_Size_Species_Mean = log(800)), interval = "prediction",
+    level = 0.9) 
+pi#these don't work for some reason? 
+
+h_hat <- predict(llm, newdata = data.frame(Brain_Size_Species_Mean = log(d$Brain_Size_Species_Mean)))
+df <- data.frame(cbind(log(d$Brain_Size_Species_Mean)), (log(d$MaxLongevity_m)), h_hat)
 names(df) <- c("x", "y", "yhat")
 head(df)
 
-ci <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = 800), interval = "confidence",
-    level = 0.9)  # for a single value
-ci
 
-pi <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = 800), interval = "prediction",
-    level = 0.9)  # for a single value
-pi
-
-ci <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = log(d$Brain_Size_Species_Mean)), interval = "confidence",
-    level = 0.9)  # for a vector of values #this also only gives one value, whyyyy?
+ci <- predict(llm, newdata = data.frame(Brain_Size_Species_Mean = log(d$Brain_Size_Species_Mean)), interval = "confidence",
+    level = 0.9)  
 head(ci)
 
 df <- cbind(df, ci)
@@ -203,9 +190,9 @@ head(df)
 
 
 
-piBM <- predict(nl, newdata = data.frame(Brain_Size_Species_Mean = log(d$Brain_Size_Species_Mean)), interval = "prediction",
-    level = 0.9)  # for a vector of values #this only give one value, why is that?
-head(piBM)
+pi <- predict(llm, newdata = data.frame(Brain_Size_Species_Mean = log(d$Brain_Size_Species_Mean)), interval = "prediction",
+    level = 0.9)  
+head(pi)
 
 df <- cbind(df, pi)
 names(df) <- c("x", "y", "yhat", "CIfit", "CIlwr", "CIupr", "PIfit", "PIlwr",
@@ -215,7 +202,7 @@ head(df)
 
 g <- ggplot(data = df, aes(x = x, y = y))+ geom_line(data = df, aes(x = x, y = PIlwr), colour = "red") + geom_line(data = df, aes(x = x, y = PIupr), colour = "red") + geom_point(alpha = 1/2) + geom_line(aes(x = x, y = CIfit), colour = "black") + geom_line(aes(x = x, y = CIlwr), colour = "blue") + geom_line(aes(x = x, y = CIupr), colour = "blue")
 g
-#what even happened?
+
 
 ```
 
