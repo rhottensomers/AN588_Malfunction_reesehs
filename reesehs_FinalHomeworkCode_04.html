@@ -1515,23 +1515,25 @@ guidelines:</p>
   }
   if((n2*p2)&gt; 5 || n2*(1-p2) &gt; 5){
     print(&quot;non-normal distribution in two sample setting&quot;)
-  }
+  } #the two previous if functions check for normal distribution and if non-normal prints out warning message
   if(is.null(p2) == TRUE || is.null(n2) == TRUE){
     z &lt;- (p1-p0)/sqrt(p0 *(1-p0)/n1) #one sample z stat
     lower &lt;- p1 - qnorm(0.95) * sqrt(p1 * (1 - p1)/n1)
     upper &lt;- p1 + qnorm(0.95) * sqrt(p1 * (1 - p1)/n1)
-    ci &lt;- c(lower, upper) #confidence interval, is this correct? *C: i believe it is, yes!; whether it calculates correct within the function I am less sure about...
+    ci &lt;- c(lower, upper) #confidence interval based around p1
     ci
-    if(alternative == &quot;two.sided&quot;){
-       p &lt;- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE) #two tailed p value
+#*C: i believe it is, yes!; whether it calculates correct within the function I am less sure about...
+  
+    if(alternative == &quot;two.sided&quot;){ 
+       p &lt;- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE) #          calculates two tailed p value
     }
     if(alternative == &quot;less&quot;){
-      p &lt;- pnorm(z, lower.tail = TRUE) #lower tailed p value
+      p &lt;- pnorm(z, lower.tail = TRUE) #calculates lower tailed p value
     }
     if(alternative == &quot;greater&quot;){
-      p &lt;- pnorm(z, lowertail = FALSE) #upper tail p value
+      p &lt;- pnorm(z, lower.tail = FALSE) #upper tail p value
     } #*C: don&#39;t forget the period in lower.tail above!
-   
+    return(list(z, p, ci))#returns z test, p value, and confidence interval calculated above
   }
   if(is.null(p2) == TRUE &amp; is.null(n2) == TRUE){
    z &lt;- (p1-p0)/sqrt(p0 *(1-p0)/n1) # one sample z stat
@@ -1546,23 +1548,24 @@ guidelines:</p>
     }
     lower &lt;- p1 - qnorm(0.95) * sqrt(p1 * (1 - p1)/30)
     upper &lt;- p1 + qnorm(0.95) * sqrt(p1 * (1 - p1)/30)
-    ci &lt;- c(lower, upper) #confidence interval, is this correct?
+    ci &lt;- c(lower, upper) #confidence interval based around p1 
     ci
+     return(list(z, p, ci))#returns z test, p value, and confidence interval calculated above
   }
 
   if(!is.null(p2) &amp; !is.null(n2)){
-    pstar &lt;- ((p0)/(n1 + n2))
-    z &lt;- (p2 - p1 - p0)/sqrt((pstar * (1 - pstar)) * (1/n1) + (1/n2))
-    p &lt;- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE)
+    pstar &lt;- ((p0)/(n1 + n2)) #calculates pooled proportion 
+    z &lt;- (p2 - p1 - p0)/sqrt((pstar * (1 - pstar)) * (1/n1) + (1/n2)) #two sample z statistic 
+    p &lt;- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE) #two sided p valued
      
      upper &lt;- (p1 -p2) + qnorm(0.95) + (sqrt((p1 * (1 - p1)/n1) + (p2 * (1-p2)/n2))) 
      lower &lt;- (p1 -p2) - qnorm(0.95) + (sqrt((p1 * (1 - p1)/n1) + (p2 * (1-p2)/n2)))
-     ci &lt;- c(lower, upper)
-   # I literally have no idea how to do CI for a two sample test, I have looked everywhere. 
+     ci &lt;- c(lower, upper) # calculates two side CI around p1 and p2
+     ci
+    return(list(z, p, ci)) #returns the z test, p value, and confidence interval given the above arguments and calculations
   }
-  list(z, p, ci)
 
-  #unclear how to code this, any help would be much appreciated :&#39;) *C: i am not sure if this was referring to the whole chunk or the list function but if it is for list I can help! You can do return(list(estimate = z, p = p, ci=ci)), although you may have to play around with the variables a bit more since mine were a bit different when assigned! Hope that helps!
+#*C: i am not sure if this was referring to the whole chunk or the list function but if it is for list I can help! You can do return(list(estimate = z, p = p, ci=ci)), although you may have to play around with the variables a bit more since mine were a bit different when assigned! Hope that helps!
   }</code></pre>
 <p>*C: I know I had a lot of trouble with this and I would say you did
 an amazing job tackling everything! It is clear and makes sense each
@@ -1664,7 +1667,7 @@ head(d) #returns data frame</code></pre>
 model to predict longevity (MaxLongevity_m) measured in months from
 species’ brain size (Brain_Size_Species_Mean) measured in grams. Linear
 Regression for longevity~brain size</p>
-<pre class="r"><code>#Fit the regression model and, using {ggplot2}, produce a scatterplot with the fitted line superimposed upon the data. Append the the fitted model equation to your plot 
+<pre class="r"><code>#Fit the regression model and, using {ggplot2}, produce a scatter plot with the fitted line superimposed upon the data. Append the the fitted model equation to your plot 
 
 nl &lt;- lm(data = d, MaxLongevity_m~Brain_Size_Species_Mean) #creates linear model
 summary(nl)</code></pre>

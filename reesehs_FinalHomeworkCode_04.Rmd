@@ -24,23 +24,25 @@ z.prop.test <- function( p1, n1, p2 = NULL, n2 = NULL, p0, alternative = c("two.
   }
   if((n2*p2)> 5 || n2*(1-p2) > 5){
     print("non-normal distribution in two sample setting")
-  }
+  } #the two previous if functions check for normal distribution and if non-normal prints out warning message
   if(is.null(p2) == TRUE || is.null(n2) == TRUE){
     z <- (p1-p0)/sqrt(p0 *(1-p0)/n1) #one sample z stat
     lower <- p1 - qnorm(0.95) * sqrt(p1 * (1 - p1)/n1)
     upper <- p1 + qnorm(0.95) * sqrt(p1 * (1 - p1)/n1)
-    ci <- c(lower, upper) #confidence interval, is this correct? *C: i believe it is, yes!; whether it calculates correct within the function I am less sure about...
+    ci <- c(lower, upper) #confidence interval based around p1
     ci
-    if(alternative == "two.sided"){
-       p <- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE) #two tailed p value
+#*C: i believe it is, yes!; whether it calculates correct within the function I am less sure about...
+  
+    if(alternative == "two.sided"){ 
+       p <- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE) #          calculates two tailed p value
     }
     if(alternative == "less"){
-      p <- pnorm(z, lower.tail = TRUE) #lower tailed p value
+      p <- pnorm(z, lower.tail = TRUE) #calculates lower tailed p value
     }
     if(alternative == "greater"){
-      p <- pnorm(z, lowertail = FALSE) #upper tail p value
+      p <- pnorm(z, lower.tail = FALSE) #upper tail p value
     } #*C: don't forget the period in lower.tail above!
-   
+    return(list(z, p, ci))#returns z test, p value, and confidence interval calculated above
   }
   if(is.null(p2) == TRUE & is.null(n2) == TRUE){
    z <- (p1-p0)/sqrt(p0 *(1-p0)/n1) # one sample z stat
@@ -55,23 +57,24 @@ z.prop.test <- function( p1, n1, p2 = NULL, n2 = NULL, p0, alternative = c("two.
     }
     lower <- p1 - qnorm(0.95) * sqrt(p1 * (1 - p1)/30)
     upper <- p1 + qnorm(0.95) * sqrt(p1 * (1 - p1)/30)
-    ci <- c(lower, upper) #confidence interval, is this correct?
+    ci <- c(lower, upper) #confidence interval based around p1 
     ci
+     return(list(z, p, ci))#returns z test, p value, and confidence interval calculated above
   }
 
   if(!is.null(p2) & !is.null(n2)){
-    pstar <- ((p0)/(n1 + n2))
-    z <- (p2 - p1 - p0)/sqrt((pstar * (1 - pstar)) * (1/n1) + (1/n2))
-    p <- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE)
+    pstar <- ((p0)/(n1 + n2)) #calculates pooled proportion 
+    z <- (p2 - p1 - p0)/sqrt((pstar * (1 - pstar)) * (1/n1) + (1/n2)) #two sample z statistic 
+    p <- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE) #two sided p valued
      
      upper <- (p1 -p2) + qnorm(0.95) + (sqrt((p1 * (1 - p1)/n1) + (p2 * (1-p2)/n2))) 
      lower <- (p1 -p2) - qnorm(0.95) + (sqrt((p1 * (1 - p1)/n1) + (p2 * (1-p2)/n2)))
-     ci <- c(lower, upper)
-   # I literally have no idea how to do CI for a two sample test, I have looked everywhere. 
+     ci <- c(lower, upper) # calculates two side CI around p1 and p2
+     ci
+    return(list(z, p, ci)) #returns the z test, p value, and confidence interval given the above arguments and calculations
   }
-  list(z, p, ci)
 
-  #unclear how to code this, any help would be much appreciated :') *C: i am not sure if this was referring to the whole chunk or the list function but if it is for list I can help! You can do return(list(estimate = z, p = p, ci=ci)), although you may have to play around with the variables a bit more since mine were a bit different when assigned! Hope that helps!
+#*C: i am not sure if this was referring to the whole chunk or the list function but if it is for list I can help! You can do return(list(estimate = z, p = p, ci=ci)), although you may have to play around with the variables a bit more since mine were a bit different when assigned! Hope that helps!
   }
 ```
 *C: I know I had a lot of trouble with this and I would say you did an amazing job tackling everything! It is clear and makes sense each argument you are applying. While I am not sure how helpful my comments could be, I hoped they helped clear some of the function writing up :)
@@ -92,7 +95,7 @@ head(d) #returns data frame
 
 For this exercise, the end aim is to fit a simple linear regression model to predict longevity (MaxLongevity_m) measured in months from species’ brain size (Brain_Size_Species_Mean) measured in grams. Linear Regression for longevity~brain size
 ```{r, regression model}
-#Fit the regression model and, using {ggplot2}, produce a scatterplot with the fitted line superimposed upon the data. Append the the fitted model equation to your plot 
+#Fit the regression model and, using {ggplot2}, produce a scatter plot with the fitted line superimposed upon the data. Append the the fitted model equation to your plot 
 
 nl <- lm(data = d, MaxLongevity_m~Brain_Size_Species_Mean) #creates linear model
 summary(nl)
